@@ -7,6 +7,7 @@ authors = ["Pedro Serpa"]
 [tool.poetry.dependencies]
 python = "^3.10"
 pandas = "^2.0.3"
+numpy = "^1.25.2"
 
 [tool.poetry.dev-dependencies]
 
