@@ -8,6 +8,9 @@ authors = ["Pedro Serpa"]
 python = "^3.10"
 pandas = "^2.0.3"
 numpy = "^1.25.2"
+matplotlib = "^3.7.2"
+PyQt5 = "^5.15.9"
+opencv-python-headless = "^4.8.0"
 
 [tool.poetry.dev-dependencies]
 
