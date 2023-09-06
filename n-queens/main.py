@@ -1,14 +1,17 @@
-from init_functions import create_int_perm_from_base
-from evolu_algo import calc_fitness
-from queen import Queen
+from init_functions import create_initial_population, get_info_from_base, print_population
+from evolu_algo import calc_fitness, generation_manager
+from queen import Queen, Individual
 
 if __name__ == "__main__":
-    population = create_int_perm_from_base("base1")
+    params = get_info_from_base("base1")
+    population = create_initial_population("base1")
     
-    for ind in population:
-        [print(queen) for queen in ind]
-    print()
-    for i, ind in enumerate(population):
+    print("Initial Population:")
+    print(len(population))
+    print_population(population=population)
 
-        print(f'Fitness for individual {i+1}: {calc_fitness(ind)}')
-        print()
+    for gen in range(params["GEN"]):
+        population = generation_manager(population=population, params=params)
+    
+    print("Final Population:")
+    print_population(population=population)

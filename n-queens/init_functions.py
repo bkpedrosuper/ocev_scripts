@@ -1,5 +1,6 @@
 import random
-from queen import Queen
+from queen import Queen, Individual
+from evolu_algo import calc_fitness
 
 def get_info_from_base(base: str):
     with open (f'inputs/{base}') as f:
@@ -12,7 +13,7 @@ def get_info_from_base(base: str):
         
         return props
 
-def create_int_perm_from_base(base: str) -> Queen:
+def create_initial_population(base: str) -> list[Individual]:
     props = get_info_from_base(base)
     pop = props["POP"]
     dim = props["DIM"]
@@ -21,7 +22,17 @@ def create_int_perm_from_base(base: str) -> Queen:
     for _ in range(pop):
         pos_values = [x+1 for x in range(dim)]
         random.shuffle(pos_values)
-        individual = [Queen(i+1, pos) for i, pos in enumerate(pos_values)]
+        individual_queens: list[Queen] = [Queen(i+1, pos) for i, pos in enumerate(pos_values)]
+        individual = Individual(queens=individual_queens, fitness=0)
         population.append(individual)
 
     return population
+
+def print_population(population: list[Individual]):
+    for i, ind in enumerate(population):
+        print(f'Individual: {i+1}')
+
+        [print(queen) for queen in ind.queens]
+
+        print(f'Fitness for individual {i+1}: {calc_fitness(ind)}')
+        print()
