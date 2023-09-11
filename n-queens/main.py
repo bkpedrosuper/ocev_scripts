@@ -6,12 +6,12 @@ if __name__ == "__main__":
     params = get_info_from_base("base1")
     population = create_initial_population("base1")
     
-    print("Initial Population:")
-    print(len(population))
-    print_population(population=population)
+    # print("Initial Population:")
+    # print(len(population))
+    # print_population(population=population)
 
-    for gen in range(params["GEN"]):
-        population = generation_manager(population=population, params=params)
+    for gen in range(1, params["GEN"]+1):
+        population = generation_manager(population=population, params=params, gen_number=gen)
     
     print("Final Population:")
     print_population(population=population)

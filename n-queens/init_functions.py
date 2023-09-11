@@ -29,7 +29,8 @@ def create_initial_population(base: str) -> list[Individual]:
     return population
 
 def print_population(population: list[Individual]):
-    for i, ind in enumerate(population):
+    individuals_sorted_by_fitness: list[Individual] = sorted(population, key=lambda ind: ind.fitness)
+    for i, ind in enumerate(individuals_sorted_by_fitness):
         print(f'Individual: {i+1}')
 
         [print(queen) for queen in ind.queens]
