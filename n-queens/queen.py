@@ -14,10 +14,11 @@ class Individual:
         self.fitness = fitness
     
     def __str__(self) -> str:
-        stringue = "========================="
-        stringue += f"Individual ({self.fitness})\n"
+        text = "========================="
+        text += f"Individual ({self.fitness})\n ["
         for queen in self.queens:
-            stringue+= (str(queen)) + "\n"
+            text+= str(queen.pos) + ","
+        text += "]\n"
         
-        stringue += "========================="
-        return stringue
+        text += "========================="
+        return text

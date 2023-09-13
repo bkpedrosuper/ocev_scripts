@@ -13,5 +13,5 @@ if __name__ == "__main__":
     for gen in range(1, params["GEN"]+1):
         population = generation_manager(population=population, params=params, gen_number=gen)
     
-    print("Final Population:")
-    print_population(population=population)
+    # print("Final Population:")
+    # print_population(population=population)

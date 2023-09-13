@@ -30,13 +30,16 @@ def calc_fitness(ind: Individual):
     return normalized_fitness
 
 def routine_tournament_selection(population: list[Individual], fitness_function, tournament_size = 4) -> list[Individual]:
-    selected = []
+    selected_parents = []
     len_population = len(population)
+
+    kp = 0.6
 
     if tournament_size > len_population:
         tournament_size = len_population
     
-    for _ in range(len(population)):
+    while len(selected_parents) < len_population:
+        choosen_index = 0
         # Randomly select individuals for the tournament
         tournament = random.sample(population, tournament_size)
         
@@ -45,13 +48,42 @@ def routine_tournament_selection(population: list[Individual], fitness_function,
         
         # Find the index of the individual with the highest fitness score
         best_index = fitness_scores.index(max(fitness_scores))
+        worst_index = fitness_scores.index(min(fitness_scores))
+
+        if kp >= random.random():
+            choosen_index = best_index
+        else:
+            choosen_index = worst_index
         
         # Select the best individual from the tournament
-        selected.append(tournament[best_index])
+        selected_parents.append(tournament[choosen_index])
     
-    return selected
+    return selected_parents
 
-def crossover_cx(parent1, parent2):
+
+def roulette_selection(population, fitness_function, num_parents):
+    # Calcula a soma total das aptidões na população
+    total_fitness = sum(fitness_function(individual) for individual in population)
+
+    # Gera uma roleta com setores proporcionais às aptidões
+    roulette_wheel = []
+    for individual in population:
+        fitness = fitness_function(individual)
+        probability = fitness / total_fitness
+        roulette_wheel.extend([individual] * int(probability * 1000))  # Multiplica por 1000 para obter mais precisão
+
+    selected_parents = random.sample(roulette_wheel, num_parents)
+    return selected_parents
+
+
+def crossover_cx(parent1: Individual, parent2: Individual) -> (Individual, Individual):
+    # print(f'Init Crossover | PARENTS:')
+    # print(f'PARENT1')
+    # print(parent1.__str__())
+
+    # print(f'PARENT2')
+    # print(parent2.__str__())
+
     offspring1 = [None] * len(parent1.queens)
     offspring2 = [None] * len(parent2.queens)
     visited = set()
@@ -86,6 +118,16 @@ def crossover_cx(parent1, parent2):
 
         start = random.choice([i for i in range(len(parent1.queens)) if i not in visited])
 
+    offspring1 = Individual(offspring1, fitness=0)
+    offspring2 = Individual(offspring2, fitness=0)
+
+    # print(f'End Crossover | OFFSPRING')
+    # print(f'offspring1')
+    # print(offspring1.__str__())
+
+    # print(f'offspring2')
+    # print(offspring2.__str__())
+
     return Individual(offspring1, fitness=0), Individual(offspring2, fitness=0)
 
 
@@ -118,6 +160,7 @@ def routine_crossover(parents: list[Individual], cross_chance: int) -> list[Indi
 
 def mutate_individual(individual: Individual, mut_number: int = 1) -> Individual:
     # IMPLEMENT FUNCTION
+    print(f'Individuals queens: {individual.queens}')
     new_queens: list[Queen] = individual.queens.copy()
     for _ in range(mut_number):
         pos1, pos2 = random.sample(range(len(new_queens)), 2)
@@ -161,10 +204,12 @@ def generation_manager(population: list[Individual], params: dict, gen_number: i
     individuals_sorted_by_fitness: list[Individual] = sorted(population, key=lambda ind: ind.fitness)
     n_best_individuals: list[Individual] = individuals_sorted_by_fitness[-params["ELIT"]:]
 
-    selected_parents = routine_tournament_selection(population=population, fitness_function=calc_fitness)
+    selected_parents = roulette_selection(population=population, fitness_function=calc_fitness, num_parents=len(population))
+    print(f'Tournament selection:')
+    [print(parent.__str__()) for parent in selected_parents]
     new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
-
-    new_population = population
+    
+    # new_population = population
 
     new_population = routine_mutation(new_population, params["MUT"])
 
