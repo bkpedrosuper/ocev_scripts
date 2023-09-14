@@ -77,13 +77,6 @@ def roulette_selection(population, fitness_function, num_parents):
 
 
 def crossover_cx(parent1: Individual, parent2: Individual) -> (Individual, Individual):
-    # print(f'Init Crossover | PARENTS:')
-    # print(f'PARENT1')
-    # print(parent1.__str__())
-
-    # print(f'PARENT2')
-    # print(parent2.__str__())
-
     offspring1 = [None] * len(parent1.queens)
     offspring2 = [None] * len(parent2.queens)
     visited = set()
@@ -118,17 +111,10 @@ def crossover_cx(parent1: Individual, parent2: Individual) -> (Individual, Indiv
 
         start = random.choice([i for i in range(len(parent1.queens)) if i not in visited])
 
-    offspring1 = Individual(offspring1, fitness=0)
-    offspring2 = Individual(offspring2, fitness=0)
+    offspring1 = Individual(queens=offspring1, fitness=0)
+    offspring2 = Individual(queens=offspring2, fitness=0)
 
-    # print(f'End Crossover | OFFSPRING')
-    # print(f'offspring1')
-    # print(offspring1.__str__())
-
-    # print(f'offspring2')
-    # print(offspring2.__str__())
-
-    return Individual(offspring1, fitness=0), Individual(offspring2, fitness=0)
+    return offspring1, offspring2
 
 
 def routine_crossover(parents: list[Individual], cross_chance: int) -> list[Individual]:
@@ -141,7 +127,8 @@ def routine_crossover(parents: list[Individual], cross_chance: int) -> list[Indi
         parent2 = parents[i+1]
         
         if random.random() <= cross_chance:
-            child1, child2 = crossover_cx(parent1, parent2)
+            (child1, child2) = crossover_cx(parent1, parent2)
+
             offspring.append(child1)
             offspring.append(child2)
         
@@ -205,12 +192,8 @@ def generation_manager(population: list[Individual], params: dict, gen_number: i
     n_best_individuals: list[Individual] = individuals_sorted_by_fitness[-params["ELIT"]:]
 
     selected_parents = roulette_selection(population=population, fitness_function=calc_fitness, num_parents=len(population))
-    print(f'Tournament selection:')
-    [print(parent.__str__()) for parent in selected_parents]
     new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
     
-    # new_population = population
-
     new_population = routine_mutation(new_population, params["MUT"])
 
     new_population = reinsert_elite(current_population=new_population, elite_individuals=n_best_individuals)
