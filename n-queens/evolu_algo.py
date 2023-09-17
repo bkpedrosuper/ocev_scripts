@@ -147,7 +147,6 @@ def routine_crossover(parents: list[Individual], cross_chance: int) -> list[Indi
 
 def mutate_individual(individual: Individual, mut_number: int = 1) -> Individual:
     # IMPLEMENT FUNCTION
-    print(f'Individuals queens: {individual.queens}')
     new_queens: list[Queen] = individual.queens.copy()
     for _ in range(mut_number):
         pos1, pos2 = random.sample(range(len(new_queens)), 2)
@@ -161,7 +160,7 @@ def mutate_individual(individual: Individual, mut_number: int = 1) -> Individual
         new_queens[pos2] = Queen(old_index2, old_pos1)
 
     new_individual = Individual(queens=new_queens, fitness=0)
-    return individual
+    return new_individual
 
 
 def routine_mutation(population: list[Individual], mut_chance: int) -> list[Individual]:
@@ -183,7 +182,7 @@ def reinsert_elite(current_population: list[Individual], elite_individuals: list
 
 
 def generation_manager(population: list[Individual], params: dict, gen_number: int) -> list[Individual]:
-    print(f'Starting generation: {gen_number}')
+    # print(f'Starting generation: {gen_number}')
     
     for i, ind in enumerate(population):
         ind.fitness = calc_fitness(ind)
@@ -191,11 +190,14 @@ def generation_manager(population: list[Individual], params: dict, gen_number: i
     individuals_sorted_by_fitness: list[Individual] = sorted(population, key=lambda ind: ind.fitness)
     n_best_individuals: list[Individual] = individuals_sorted_by_fitness[-params["ELIT"]:]
 
-    selected_parents = roulette_selection(population=population, fitness_function=calc_fitness, num_parents=len(population))
-    new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
+    # selected_parents = roulette_selection(population=population, fitness_function=calc_fitness, num_parents=len(population))
+    # new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
     
-    new_population = routine_mutation(new_population, params["MUT"])
+    new_population = routine_mutation(population, params["MUT"])
 
     new_population = reinsert_elite(current_population=new_population, elite_individuals=n_best_individuals)
+
+    for ind in new_population:
+        ind.fitness = calc_fitness(ind)
 
     return new_population

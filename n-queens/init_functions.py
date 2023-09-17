@@ -33,7 +33,4 @@ def print_population(population: list[Individual]):
     for i, ind in enumerate(individuals_sorted_by_fitness):
         print(f'Individual: {i+1}')
 
-        [print(queen) for queen in ind.queens]
-
-        print(f'Fitness for individual {i+1}: {calc_fitness(ind)}')
-        print()
+        print(ind)
