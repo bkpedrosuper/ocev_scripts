@@ -1,10 +1,13 @@
 from init_functions import create_initial_population, get_info_from_base, print_population
 from evolu_algo import generation_manager
 from plot_functions import plot_convergence, plot_boxplot_trials, save_trial_results
+import time
 
 if __name__ == "__main__":
     best_values_each_gen = []
     params = get_info_from_base("base1")
+
+    init = time.time()
 
     for trial in range(1, params["N_TESTS"]):
         best_values = []
@@ -22,3 +25,7 @@ if __name__ == "__main__":
 
     plot_boxplot_trials(best_values_each_gen=best_values_each_gen, label=params["DIM"])
     save_trial_results(best_values_each_gen=best_values_each_gen, label=params["DIM"])
+
+    end = time.time()
+
+    print(f'Total time spent: {end - init}s')
