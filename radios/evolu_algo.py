@@ -1,42 +1,48 @@
 import random
 from radio import Radio
+import math
+
+def objective_function(std: float, lx: float):
+    return 30 * std + 40 * lx
 
 
-def calc_penalty(ind: Radio):
-    std_bin = ind.bin[:-5]
-    lx_bin = ind.bin[-5:]
-    
-    std = 30 * bin_to_decimal(std_bin)
-    lx = 40 * bin_to_decimal(lx_bin)
-
+def calc_penalty(std: float, lx: float):
     partial_penalty = (std + 2*lx - 40) / 16
     penalty = max([0, partial_penalty])
     return penalty
 
 
-def calc_fitness(ind: Radio, bin_L: int) -> float:
-    std_bin = ind.bin[:-5]
-    lx_bin = ind.bin[-5:]
+def decode_bitArray_to_int(bitArray):
+    bitString = ''.join(str(bit) for bit in bitArray)
+    return int(bitString,2)
+
+def fitness(pop,c):
+    popFitness = []
+    for chromo in pop:
+        st = math.floor((decode_bitArray_to_int(chromo.bin[:5]) / 31 * 24))
+        lx = math.floor((decode_bitArray_to_int(chromo.bin[5:]) / 31 * 16))
+        popFitness.append(((30*st + 40*lx)/1360) + (c*max(0,(st + 2*lx - 40)/16)))
+    return popFitness
+
+
+def calc_fitness(ind: Radio) -> float:
+    radio_size = 5
+    std_bin = ind.bin[:-radio_size]
+    lx_bin = ind.bin[-radio_size:]
     
-    std = 30 * bin_to_decimal(std_bin)
-    lx = 40 * bin_to_decimal(lx_bin)
-
-
-
-    profit = std + lx
-    c = -1
-    penalty = calc_penalty(ind)
+    std = math.floor(codification(bin_to_decimal(std_bin), radio_size))
+    lx = math.floor(codification(bin_to_decimal(lx_bin), radio_size))
 
     # NORMALIZE FITNESS
     max_profit = 30 * 24 + 40 * 16
-    min_profit = 0
 
+    r = -1
+    OFn = objective_function(std, lx) / max_profit
+    Hn = calc_penalty(std, lx)
+    
+    fit = OFn + r * Hn
 
-    raw_fitness = codification(profit, bin_L) + (-1) * codification(penalty, bin_L)
-    normalized_fitness = (raw_fitness - min_profit) / (max_profit - min_profit)
-
-
-    return normalized_fitness
+    return fit
 
 
 def bin_to_decimal(bin_list: list[int]) -> int:
@@ -85,7 +91,7 @@ def routine_tournament_selection(population: list[Radio], fitness_function, tour
 
 def roulette_selection(population, fitness_function, num_parents) -> list[Radio]:
     # Calcula a soma total das aptidões na população
-    total_fitness = sum(fitness_function(individual) for individual in population)
+    total_fitness = sum([calc_fitness(individual) for individual in population])
 
     # Gera uma roleta com setores proporcionais às aptidões
     roulette_wheel = []
@@ -124,17 +130,28 @@ def routine_crossover(parents: list[Radio], cross_chance: int) -> list[Radio]:
     return offspring
 
 
-def mutate_individual(individual: Radio, mut_number: int = 1) -> Radio:
-    # IMPLEMENT FUNCTION
-    
+def flip_bit(bit: int):
+    if bit == 1:
+        return 0
+    return 1
+
+
+def mutate_individual(individual: Radio, mut_chance: float) -> Radio:
+    new_bits = []
+    for bit in individual.bin:
+        if random.random() < mut_chance:
+            new_bits.append(flip_bit(bit))
+        else:
+            new_bits.append(bit)
+
+    individual.bin = new_bits
     return individual
 
 
 def routine_mutation(population: list[Radio], mut_chance: int) -> list[Radio]:
     mut_chance: float = mut_chance / 100
     for index, individual in enumerate(population):
-        if random.random() < mut_chance:
-            population[index] = mutate_individual(individual)
+        population[index] = mutate_individual(individual, mut_chance)
     
     return population
 
@@ -142,28 +159,29 @@ def routine_mutation(population: list[Radio], mut_chance: int) -> list[Radio]:
 def reinsert_elite(current_population: list[Radio], elite_individuals: list[Radio]) -> list[Radio]:
     new_population = current_population.copy()
     for individual in elite_individuals:
-        removed_individual: int = random.choice(range(len(current_population) -1))
+        removed_individual: int = random.choice(range(len(current_population)))
         new_population[removed_individual] = individual
     
     return new_population
 
 
 def generation_manager(population: list[Radio], params: dict, gen_number: int) -> list[Radio]:
-    
+    print(f'Starting generation {gen_number}')
+
     for ind in population:
         ind.fitness = calc_fitness(ind)
 
     individuals_sorted_by_fitness: list[Radio] = sorted(population, key=lambda ind: ind.fitness)
     n_best_individuals: list[Radio] = individuals_sorted_by_fitness[-params["ELIT"]:]
 
-    selected_parents = roulette_selection(population=population, fitness_function=calc_fitness, num_parents=len(population))
+    selected_parents = routine_tournament_selection(population=population, fitness_function=calc_fitness, tournament_size=3)
     new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
     
     new_population = routine_mutation(population, params["MUT"])
 
     new_population = reinsert_elite(current_population=new_population, elite_individuals=n_best_individuals)
 
-    for ind in new_population:
+    for ind in population:
         ind.fitness = calc_fitness(ind)
 
     return new_population
