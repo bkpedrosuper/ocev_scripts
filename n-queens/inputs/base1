@@ -1,4 +1,4 @@
-DIM=128
+DIM=8
 POP=30
 MIN=-2
 MAX=2

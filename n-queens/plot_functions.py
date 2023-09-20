@@ -90,9 +90,11 @@ def read_results(labels: list[str], type: str) -> dict:
 def plot_box_plots_all_labels(values_dict: dict, type: str):
     labels = []
     values = []
+    total_runs = len(values_dict)
 
     for key, value_list in values_dict.items():
         # Extend labels and values with the same key multiple times to match lengths
+        total_runs = len(value_list)
         labels.extend([key] * len(value_list))
         values.extend(value_list)
     
@@ -107,7 +109,7 @@ def plot_box_plots_all_labels(values_dict: dict, type: str):
     sns.set(style="whitegrid")
     plt.figure(figsize=(8, 6))
     sns.boxplot(data=df, x=type, y="n_queens")
-    plt.title(f"Boxplot {type.capitalize()} - all Trials")
+    plt.title(f"Boxplot {type.capitalize()} - {total_runs} Trials")
     
     folder_path = f'results_n_queens'
     figure_path = os.path.join(folder_path, f'boxplot_all_trials_{type}.png')
@@ -117,9 +119,9 @@ def plot_box_plots_all_labels(values_dict: dict, type: str):
 if __name__ == "__main__":
     labels = ['8', '16', '32', '64', '128']
     trials_values_fitness = read_results(labels=labels, type="fitness")
-    trials_values_mean = read_results(labels=labels, type="mean")
+    # trials_values_mean = read_results(labels=labels, type="mean")
     trials_values_time = read_results(labels=labels, type="time")
 
     plot_box_plots_all_labels(values_dict=trials_values_fitness, type="fitness")
-    plot_box_plots_all_labels(values_dict=trials_values_fitness, type="mean")
-    plot_box_plots_all_labels(values_dict=trials_values_fitness, type="time")
+    plot_box_plots_all_labels(values_dict=trials_values_time, type="time")
+    # plot_box_plots_all_labels(values_dict=trials_values_fitness, type="mean")
