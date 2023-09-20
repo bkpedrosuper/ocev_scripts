@@ -1,5 +1,11 @@
 import random
 from queen import Queen, Individual
+from joblib import Parallel, delayed
+import multiprocessing
+
+def calc_fitness_for_individual(ind: Individual):
+    ind.fitness = calc_fitness(ind)
+
 
 def calc_fitness(ind: Individual):
 
@@ -183,9 +189,6 @@ def reinsert_elite(current_population: list[Individual], elite_individuals: list
 
 def generation_manager(population: list[Individual], params: dict, gen_number: int) -> list[Individual]:
     # print(f'Starting generation: {gen_number}')
-    
-    for i, ind in enumerate(population):
-        ind.fitness = calc_fitness(ind)
 
     individuals_sorted_by_fitness: list[Individual] = sorted(population, key=lambda ind: ind.fitness)
     n_best_individuals: list[Individual] = individuals_sorted_by_fitness[-params["ELIT"]:]
@@ -199,5 +202,7 @@ def generation_manager(population: list[Individual], params: dict, gen_number: i
 
     for ind in new_population:
         ind.fitness = calc_fitness(ind)
+    # n_jobs = multiprocessing.cpu_count()
 
+    # Parallel(n_jobs=n_jobs)(delayed(calc_fitness_for_individual)(ind) for ind in new_population)
     return new_population
