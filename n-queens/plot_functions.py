@@ -143,8 +143,11 @@ def plot_full_convergence(label: str):
     plt.ylabel("Fitness Value")
     plt.title(f"Convergence Plot of Genetic Algorithm with Standard Deviation for {label} queens")
     plt.legend(loc="upper right")
-    plt.show()
-
+    
+    
+    folder_path = f'results_{label}_queens'
+    figure_path = os.path.join(folder_path, f'full_convergence_{label}_queens.png')
+    plt.savefig(figure_path)
 
 
 if __name__ == "__main__":
@@ -153,8 +156,8 @@ if __name__ == "__main__":
     # trials_values_mean = read_results(labels=labels, type="mean")
     trials_values_time = read_results(labels=labels, type="time")
 
-    plot_full_convergence('8')
-    plot_full_convergence('16')
+    for lab in labels:
+        plot_full_convergence(lab)
 
     # plot_box_plots_all_labels(values_dict=trials_values_fitness, type="fitness")
     # plot_box_plots_all_labels(values_dict=trials_values_time, type="time")

@@ -54,7 +54,7 @@ if __name__ == "__main__":
         df_fitness = insert_values(df_fitness, best_values, trial)
         df_mean = insert_values(df_mean, mean_values, trial)
 
-        plot_convergence(generation=gen, best_values=best_values, mean_values=mean_values, n_dim=params["DIM"], save=True, trial=trial)
+        # plot_convergence(generation=gen, best_values=best_values, mean_values=mean_values, n_dim=params["DIM"], save=True, trial=trial)
     
     df_fitness.to_csv(f"results_{params['DIM']}_queens/df_fitness.csv")
     df_mean.to_csv(f"results_{params['DIM']}_queens/df_mean.csv")
