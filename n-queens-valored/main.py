@@ -54,8 +54,7 @@ if __name__ == "__main__":
         best = 0
         current_best = 0
         gen_no_increment = 0
-        # while best < 1:
-        for _ in range(params["GEN"]):
+        while best < 1:
             population = generation_manager(population=population, params=params, gen_number=gen, board=board)
             best_individual = max(population, key=lambda x: x.fitness)
             mean_fitness = np.mean([ind.fitness for ind in population])

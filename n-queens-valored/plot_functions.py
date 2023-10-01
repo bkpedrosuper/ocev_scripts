@@ -167,7 +167,7 @@ def plot_full_convergence(label: str):
     
     
     folder_path = f'results_{label}_queens'
-    figure_path = os.path.join(folder_path, f'full_convergence_{label}_queens.png')
+    figure_path = os.path.join(folder_path, f'valored_full_convergence_{label}_queens.png')
     plt.savefig(figure_path)
 
 

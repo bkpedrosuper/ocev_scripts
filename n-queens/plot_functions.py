@@ -159,6 +159,6 @@ if __name__ == "__main__":
     for lab in labels:
         plot_full_convergence(lab)
 
-    # plot_box_plots_all_labels(values_dict=trials_values_fitness, type="fitness")
-    # plot_box_plots_all_labels(values_dict=trials_values_time, type="time")
+    plot_box_plots_all_labels(values_dict=trials_values_fitness, type="fitness")
+    plot_box_plots_all_labels(values_dict=trials_values_time, type="time")
     # plot_box_plots_all_labels(values_dict=trials_values_fitness, type="mean")

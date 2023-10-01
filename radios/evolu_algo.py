@@ -1,10 +1,7 @@
 import random
-from radio import Radio
+from radio import Radio, bin_to_decimal, codification, objective_function
 import math
-
-def objective_function(std: float, lx: float):
-    return 30 * std + 40 * lx
-
+import numpy as np
 
 def calc_penalty(std: float, lx: float):
     partial_penalty = (std + 2*lx - 40) / 16
@@ -30,17 +27,6 @@ def calc_fitness(ind: Radio) -> float:
 
     return fit
 
-
-def bin_to_decimal(bin_list: list[int]) -> int:
-    decimal = sum([ 2**i if id==1 else 0 for i, id in enumerate(bin_list) ])
-    return decimal
-
-
-def codification(decimal: int, bin_L: int) -> float:
-    x_min = 0
-    x_max = 24
-    x = x_min + ((x_max - x_min) / (2**bin_L -1)) * decimal
-    return x
 
 
 def routine_tournament_selection(population: list[Radio], fitness_function, tournament_size = 4) -> list[Radio]:
@@ -77,12 +63,12 @@ def routine_tournament_selection(population: list[Radio], fitness_function, tour
 
 def roulette_selection(population, fitness_function, num_parents) -> list[Radio]:
     # Calcula a soma total das aptidões na população
-    total_fitness = sum([calc_fitness(individual) for individual in population])
+    total_fitness = sum([individual.fitness for individual in population])
 
     # Gera uma roleta com setores proporcionais às aptidões
     roulette_wheel = []
     for individual in population:
-        fitness = fitness_function(individual)
+        fitness = individual.fitness
         probability = fitness / total_fitness
         roulette_wheel.extend([individual] * int(probability * 1000))  # Multiplica por 1000 para obter mais precisão
 
@@ -91,7 +77,18 @@ def roulette_selection(population, fitness_function, num_parents) -> list[Radio]
 
 
 def one_point_crossover(parent1: Radio, parent2: Radio) -> (Radio, Radio):
-    return parent1, parent2
+    cr1 = parent1.bin
+    cr2 = parent1.bin
+    
+    position = random.randint(0, len(cr1) - 1)
+
+    cr1_floor, cr1_ceil = cr1[:position], cr1[position:]
+    cr2_floor, cr2_ceil = cr2[:position], cr2[position:]
+
+    mated_cr1 = np.concatenate((cr1_floor, cr2_ceil), axis=0)
+    mated_cr2 = np.concatenate((cr2_floor, cr1_ceil), axis=0)
+
+    return Radio(mated_cr1, 0), Radio(mated_cr2, 0)
 
 
 def routine_crossover(parents: list[Radio], cross_chance: int) -> list[Radio]:
@@ -104,7 +101,7 @@ def routine_crossover(parents: list[Radio], cross_chance: int) -> list[Radio]:
         parent2 = parents[i+1]
         
         if random.random() <= cross_chance:
-            (child1, child2) = one_point_crossover(parent1, parent2)
+            child1, child2 = one_point_crossover(parent1, parent2)
 
             offspring.append(child1)
             offspring.append(child2)
@@ -154,9 +151,6 @@ def reinsert_elite(current_population: list[Radio], elite_individuals: list[Radi
 def generation_manager(population: list[Radio], params: dict, gen_number: int) -> list[Radio]:
     print(f'Starting generation {gen_number}')
 
-    for ind in population:
-        ind.fitness = calc_fitness(ind)
-
     individuals_sorted_by_fitness: list[Radio] = sorted(population, key=lambda ind: ind.fitness)
     n_best_individuals: list[Radio] = individuals_sorted_by_fitness[-params["ELIT"]:]
 
@@ -167,7 +161,11 @@ def generation_manager(population: list[Radio], params: dict, gen_number: int) -
 
     new_population = reinsert_elite(current_population=new_population, elite_individuals=n_best_individuals)
 
-    for ind in population:
-        ind.fitness = calc_fitness(ind)
+    final_population = []
+    for ind in new_population:
+        bin = ind.bin
+        fitness = calc_fitness(ind)
+        new_individual = Radio(bin, fitness)
+        final_population.append(new_individual)
 
-    return new_population
+    return final_population
