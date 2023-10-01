@@ -3,19 +3,14 @@ from queen import Queen, Individual
 from joblib import Parallel, delayed
 import multiprocessing
 from board import Board
+import numpy as np
 
 def calc_fitness_for_individual(ind: Individual):
     ind.fitness = calc_fitness(ind)
 
 
-def calc_fitness(ind: Individual):
-
-    dimension = len(ind.queens)
-    min_fitness = 0
-    max_fitness = sum([x for x in range(dimension)])
-
+def calc_colisions(ind: Individual):
     colisions = 0
-    
     for queen1 in ind.queens:
         for queen2 in ind.queens:
             if queen1.index == queen2.index:
@@ -29,12 +24,38 @@ def calc_fitness(ind: Individual):
 
     if colisions != 0:
         colisions = int(colisions / 2)
+
+    return colisions
+
+
+def calc_penalty(ind: Individual, total_colisions: int):
+    dimension = len(ind.queens)
+    max_colisions = sum([x for x in range(dimension)])
     
-    raw_fitness = max_fitness - colisions
+    if total_colisions != 0:
+        return total_colisions / max_colisions
+    
+    return 0
 
-    normalized_fitness = (raw_fitness - min_fitness) / (max_fitness - min_fitness)
 
-    return normalized_fitness
+def calc_objective_function(ind: Individual, board: Board):
+    score = 0
+    for queen in ind.queens:
+        score += board.matrix[queen.pos -1][queen.index -1]
+    return score
+
+
+def calc_fitness(ind: Individual, board: Board):
+    total_colisions = calc_colisions(ind)
+    of = calc_objective_function(ind, board)
+    penalty = calc_penalty(ind, total_colisions)
+
+    # normalize objective function
+    raw_fitness = of / board.max_value
+    fitness = raw_fitness - penalty
+
+    return fitness, total_colisions
+
 
 def routine_tournament_selection(population: list[Individual], fitness_function, tournament_size = 4) -> list[Individual]:
     selected_parents = []
@@ -68,14 +89,14 @@ def routine_tournament_selection(population: list[Individual], fitness_function,
     return selected_parents
 
 
-def roulette_selection(population, fitness_function, num_parents):
+def roulette_selection(population: list[Individual], fitness_function, num_parents):
     # Calcula a soma total das aptidões na população
-    total_fitness = sum(fitness_function(individual) for individual in population)
+    total_fitness = sum(individual.fitness for individual in population)
 
     # Gera uma roleta com setores proporcionais às aptidões
     roulette_wheel = []
     for individual in population:
-        fitness = fitness_function(individual)
+        fitness = individual.fitness
         probability = fitness / total_fitness
         roulette_wheel.extend([individual] * int(probability * 1000))  # Multiplica por 1000 para obter mais precisão
 
@@ -84,43 +105,35 @@ def roulette_selection(population, fitness_function, num_parents):
 
 
 def crossover_cx(parent1: Individual, parent2: Individual) -> (Individual, Individual):
-    offspring1 = [None] * len(parent1.queens)
-    offspring2 = [None] * len(parent2.queens)
-    visited = set()
+    ind1 = [queen.pos for queen in parent1.queens]
+    ind2 = [queen.pos for queen in parent2.queens]
 
-    start = random.randint(0, len(parent1.queens) - 1)
+    first = ind1[0]
+    gene1 = ind1[0]
+    gene2 = ind2[0]
+    size = len(ind1)
 
-    while True:
-        # Get the queen positions at the current position from both parents
-        pos_parent1 = parent1.queens[start].pos
-        pos_parent2 = parent2.queens[start].pos
+    sections_aux = np.array([False for _ in range(size)])
+    i = 0
+    while gene2 != first:
+        i = (i + 1) % size
+        gene1 = ind1[i]
+        if gene1 == gene2:
+            #sections.append(i)
+            sections_aux[i] = True
+            gene2 = ind2[i]
 
-        offspring1[start] = parent1.queens[start]
-        offspring2[start] = parent2.queens[start]
-        visited.add(start)
+    mated_ind1 = np.array([ind1[i] if sections_aux[i] is True else ind2[i] for i in range(size)])
+    mated_ind2 = np.array([ind2[i] if sections_aux[i] is True else ind1[i] for i in range(size)])
 
-        position_in_parent1 = [queen.pos for queen in parent1.queens].index(pos_parent2)
-        position_in_parent2 = [queen.pos for queen in parent2.queens].index(pos_parent1)
+    # print(f'mated_ind1: {mated_ind1}')
+    # print(f'mated_ind2: {mated_ind2}')
 
-        while position_in_parent1 not in visited:
-            pos_parent1 = parent1.queens[position_in_parent1].pos
-            pos_parent2 = parent2.queens[position_in_parent1].pos
+    offspring1_queens = [Queen(i+1, pos) for i, pos in zip(range(size), mated_ind1)] 
+    offspring2_queens = [Queen(i+1, pos) for i, pos in zip(range(size), mated_ind1)]
 
-            offspring1[position_in_parent1] = parent1.queens[position_in_parent1]
-            offspring2[position_in_parent1] = parent2.queens[position_in_parent1]
-            visited.add(position_in_parent1)
-
-            position_in_parent1 = [queen.pos for queen in parent1.queens].index(pos_parent2)
-            position_in_parent2 = [queen.pos for queen in parent2.queens].index(pos_parent1)
-
-        if len(visited) == len(parent1.queens):
-            break
-
-        start = random.choice([i for i in range(len(parent1.queens)) if i not in visited])
-
-    offspring1 = Individual(queens=offspring1, fitness=0)
-    offspring2 = Individual(queens=offspring2, fitness=0)
-
+    offspring1 = Individual(queens=offspring1_queens, fitness=0)
+    offspring2 = Individual(queens=offspring2_queens, fitness=0)
     return offspring1, offspring2
 
 
@@ -188,22 +201,22 @@ def reinsert_elite(current_population: list[Individual], elite_individuals: list
     return new_population
 
 
-def generation_manager(population: list[Individual], params: dict, gen_number: int) -> list[Individual]:
-    # print(f'Starting generation: {gen_number}')
-
+def generation_manager(population: list[Individual], params: dict, gen_number: int, board: Board) -> list[Individual]:
+    # print(f'Starting generation {gen_number}')
     individuals_sorted_by_fitness: list[Individual] = sorted(population, key=lambda ind: ind.fitness)
     n_best_individuals: list[Individual] = individuals_sorted_by_fitness[-params["ELIT"]:]
 
-    # selected_parents = roulette_selection(population=population, fitness_function=calc_fitness, num_parents=len(population))
-    # new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
+    selected_parents = roulette_selection(population=population, fitness_function=calc_fitness, num_parents=len(population))
+    new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
     
     new_population = routine_mutation(population, params["MUT"])
 
     new_population = reinsert_elite(current_population=new_population, elite_individuals=n_best_individuals)
 
+    final_population = []
     for ind in new_population:
-        ind.fitness = calc_fitness(ind)
-    # n_jobs = multiprocessing.cpu_count()
+        fitness, colisions = calc_fitness(ind, board)
+        new_individual = Individual(ind.queens, fitness, colisions)
+        final_population.append(new_individual)
 
-    # Parallel(n_jobs=n_jobs)(delayed(calc_fitness_for_individual)(ind) for ind in new_population)
-    return new_population
+    return final_population

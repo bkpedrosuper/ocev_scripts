@@ -47,6 +47,27 @@ def save_trial_results(list_to_save, label, file_name):
     print(f"Results for '{label}' saved to '{file_path}'")
 
 
+def save_any_result(text: str, label, file_name):
+    # Create a comma-separated string of best values
+    label = str(label)
+
+    folder_path = f'results_{label}_queens'
+
+    # Create or use the specified folder path
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    # Define the file path for the text file (you can change the filename)
+    file_path = os.path.join(folder_path, f'{file_name}_{label}_results.txt')
+
+    # Write the best values to the text file
+    with open(file_path, 'w') as file:
+        file.write(text)
+
+    print(f"Results for '{label}' saved to '{file_path}'")
+
+
+
 def plot_boxplot_trials_single_label(best_values_each_gen, label):
     print(best_values_each_gen)
     label = str(label)
@@ -151,10 +172,13 @@ def plot_full_convergence(label: str):
 
 
 if __name__ == "__main__":
-    labels = ['8']
+    labels = ['8', '16', '32', '64', '128']
     trials_values_fitness = read_results(labels=labels, type="fitness")
     # trials_values_mean = read_results(labels=labels, type="mean")
     trials_values_time = read_results(labels=labels, type="time")
 
+    plot_box_plots_all_labels(values_dict=trials_values_fitness, type="fitness")
+    plot_box_plots_all_labels(values_dict=trials_values_time, type="time")
+    
     for lab in labels:
         plot_full_convergence(lab)

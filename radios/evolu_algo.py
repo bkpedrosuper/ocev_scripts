@@ -11,20 +11,6 @@ def calc_penalty(std: float, lx: float):
     penalty = max([0, partial_penalty])
     return penalty
 
-
-def decode_bitArray_to_int(bitArray):
-    bitString = ''.join(str(bit) for bit in bitArray)
-    return int(bitString,2)
-
-def fitness(pop,c):
-    popFitness = []
-    for chromo in pop:
-        st = math.floor((decode_bitArray_to_int(chromo.bin[:5]) / 31 * 24))
-        lx = math.floor((decode_bitArray_to_int(chromo.bin[5:]) / 31 * 16))
-        popFitness.append(((30*st + 40*lx)/1360) + (c*max(0,(st + 2*lx - 40)/16)))
-    return popFitness
-
-
 def calc_fitness(ind: Radio) -> float:
     radio_size = 5
     std_bin = ind.bin[:-radio_size]

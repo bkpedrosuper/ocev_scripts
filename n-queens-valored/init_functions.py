@@ -1,5 +1,6 @@
 import random
 from queen import Queen, Individual
+from board import Board
 from evolu_algo import calc_fitness
 import pandas as pd
 
@@ -63,3 +64,19 @@ def insert_values(df: pd.DataFrame, values: list, column: int):
     df[column] = new_values
     
     return df
+
+def str_individual_plus_board(ind: Individual, board: Board):
+    text = ""
+    text += str(ind)
+    values = []
+    positions = []
+    for queen in ind.queens:
+        values.append(board.matrix[queen.pos-1][queen.index-1])
+        positions.append(f'({queen.pos}, {queen.index})')
+
+    text += ",".join(positions) + "\n"
+    text += '+'.join([str(value) for value in values]) + '\n'
+    text += f'TOTAL SUM: {sum(values)}\n'
+    text += '============='
+    
+    return text
