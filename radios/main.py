@@ -58,7 +58,9 @@ if __name__ == "__main__":
         mean_values_each_trial.append(mean_fitness)
 
         # GET THE BEST INDIVIDUAL
-        best_individual = max(population, key=lambda x: x.fitness)
+        best_individual = max(best_individual_each_trial, key=lambda x: x.fitness)
+
+        print(calc_fitness(best_individual))
 
         # Insert values into df
         df_fitness = insert_values(df_fitness, best_values, trial_number)
@@ -94,7 +96,6 @@ if __name__ == "__main__":
     df_fitness_final.to_csv(f"results/df_fitness.csv")
     df_means_final.to_csv(f"results/df_mean.csv")
 
-    # GET BEST INDIVIDUAL OVER ALL TRIALS
     best_individual_all: Radio = max(best_individual_each_trial, key=lambda x: x.fitness)
 
     save_trial_results(list_to_save=best_values_each_trial, label="radios", file_name='fitness')

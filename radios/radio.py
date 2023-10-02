@@ -1,3 +1,5 @@
+import math
+
 def bin_to_decimal(bin_list: list[int]) -> int:
     decimal = sum([ 2**i if id==1 else 0 for i, id in enumerate(bin_list) ])
     return decimal
@@ -38,8 +40,8 @@ class Radio:
         std_bin = self.bin[:-radio_size]
         lx_bin = self.bin[-radio_size:]
 
-        std = bin_to_decimal(std_bin)
-        lx = bin_to_decimal(lx_bin)
+        std = math.floor(codification(bin_to_decimal(std_bin), radio_size))
+        lx = math.floor(codification(bin_to_decimal(lx_bin), radio_size))
 
         string += f'Standard: {std}\n'
         string += f'Luxury: {lx}\n'
