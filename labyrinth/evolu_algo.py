@@ -15,23 +15,19 @@ def calc_penalty(ind: Path, board: Board):
         
         x = pos[0]
         y = pos[1]
-        if x >= 0 and x < board.x_size and j>=0 and j < board.y_size:
+        if x >= 0 and x < board.x_size and y>=0 and y < board.y_size:
             # Position inside
             if board.get_value(pos) == 1:
                 penalty_count 
         else:
             penalty_count += 1
         
-    
-    for i in range(board.x_size):
-        for j in range(board.y_size):
-            if i >= 0 and i < board.x_size and j>=0 and 
-            
-    return penalty
+                
+    return penalty_count
 
 def calc_fitness(ind: Path, board: Board) -> float:
     
-    return fit
+    return 0
 
 
 
