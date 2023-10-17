@@ -2,9 +2,7 @@
 [1, 1, 1, 1, 1, 1, 1, 0, 1, 0]
 (0.7647058823529411)
 =====
-Standard: 31
-Luxury: 11
-ALERT: Standard Restriction Violated. Max: 24. Value Found: 31
-ALERT: Employee Restriction Violated. Max: 40. Value Found: 42
-30 * 31 + 40 * 11
-$1370
+Standard: 24
+Luxury: 8
+30 * 24 + 40 * 8
+$1040
