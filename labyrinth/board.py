@@ -8,7 +8,7 @@ class Board:
         exit: tuple(int, int) = (0, 0)
 
         self.x_size = len(matrix)
-        if len(matrix > 0):
+        if len(matrix) > 0:
             self.y_size = len(matrix[0])
         else:
             self.y_size = 0
@@ -29,9 +29,8 @@ class Board:
         self.matrix = matrix
         self.exit = exit
         self.start = start
-        print(self.matrix)
-        print(self.start)
-        print(self.exit)
+        self.height = len(matrix)
+        self.width = len(matrix[0])
     
     def get_value(self, pos):
         return self.matrix[pos[0]][pos[1]]

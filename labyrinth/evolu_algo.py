@@ -1,6 +1,6 @@
 import random
-from path import Path, bin_to_decimal, codification, objective_function
-import math
+from path import Path
+from math import sqrt, pow
 import numpy as np
 from board import Board
 
@@ -9,6 +9,7 @@ def calc_penalty(ind: Path, board: Board):
 
     pos = board.start
     penalty_count = 0
+    found_exit = False
 
     for direction in ind.directions:
         pos = ind.get_new_pos(direction, pos)
@@ -17,19 +18,41 @@ def calc_penalty(ind: Path, board: Board):
         y = pos[1]
         if x >= 0 and x < board.x_size and y>=0 and y < board.y_size:
             # Position inside
-            if board.get_value(pos) == 1:
-                penalty_count 
+            if board.get_value(pos) == 3:
+                found_exit = True
+            if board.get_value(pos) == 1 and not found_exit:
+                penalty_count += 1
         else:
             penalty_count += 1
         
-                
-    return penalty_count
+    penalty = penalty_count / total     
+    return penalty
 
 def calc_fitness(ind: Path, board: Board) -> float:
     
-    return 0
+    pos = board.start
+    max_distance = euclidean_distance((0, 0) , (board.width-1, board.height-1))
 
+    for direction in ind.directions:
+        pos = ind.get_new_pos(direction, pos)
+        # if board.get_value(pos) == 3:
+        #     # Found the exit
+        #     break
 
+    last_pos = pos
+    final_distance = euclidean_distance(last_pos, board.exit)
+    final_distance_nr = final_distance * 1 / (max_distance)
+    fitness = (1 - final_distance_nr)
+    return fitness - calc_penalty(ind, board)
+
+def euclidean_distance(pos1, pos2):
+    x1 = pos1[0]
+    y1 = pos1[1]
+    x2 = pos2[0]
+    y2 = pos2[1]
+
+    distance = sqrt(pow(x2-x1, 2) + pow(y2-y1, 2))
+    return distance
 
 def routine_tournament_selection(population: list[Path], fitness_function, tournament_size = 4) -> list[Path]:
     selected_parents = []
@@ -115,21 +138,18 @@ def routine_crossover(parents: list[Path], cross_chance: int) -> list[Path]:
     return offspring
 
 
-def flip_bit(bit: int):
-    if bit == 1:
-        return 0
-    return 1
-
 
 def mutate_individual(individual: Path, mut_chance: float) -> Path:
-    new_bits = []
-    for bit in individual.bin:
-        if random.random() < mut_chance:
-            new_bits.append(flip_bit(bit))
-        else:
-            new_bits.append(bit)
+    new_directions = []
+    directions = [0, 1, 2, 3, 4]
 
-    individual.bin = new_bits
+    for direction in individual.directions:
+        if random.random() < mut_chance:
+            new_directions.append(random.choice(directions))
+        else:
+            new_directions.append(direction)
+
+    individual = Path(new_directions, 0)
     return individual
 
 
@@ -150,14 +170,14 @@ def reinsert_elite(current_population: list[Path], elite_individuals: list[Path]
     return new_population
 
 
-def generation_manager(population: list[Path], params: dict, gen_number: int) -> list[Path]:
+def generation_manager(population: list[Path], params: dict, gen_number: int, board: Board) -> list[Path]:
     print(f'Starting generation {gen_number}')
 
     individuals_sorted_by_fitness: list[Path] = sorted(population, key=lambda ind: ind.fitness)
     n_best_individuals: list[Path] = individuals_sorted_by_fitness[-params["ELIT"]:]
 
-    selected_parents = routine_tournament_selection(population=population, fitness_function=calc_fitness, tournament_size=3)
-    new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
+    # selected_parents = routine_tournament_selection(population=population, fitness_function=calc_fitness, tournament_size=3)
+    # new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
     
     new_population = routine_mutation(population, params["MUT"])
 
@@ -165,9 +185,9 @@ def generation_manager(population: list[Path], params: dict, gen_number: int) ->
 
     final_population = []
     for ind in new_population:
-        bin = ind.bin
-        fitness = calc_fitness(ind)
-        new_individual = Path(bin, fitness)
+        directions = ind.directions
+        fitness = calc_fitness(ind, board)
+        new_individual = Path(directions, fitness)
         final_population.append(new_individual)
 
     return final_population

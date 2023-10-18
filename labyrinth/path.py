@@ -14,21 +14,21 @@ class Path:
     def get_new_pos(self, direction, pos):
         
         # move up
-        if direction == 1:
+        if direction == 0:
             return (pos[0], pos[1]+1)
 
         # move down
-        if direction == 2:
+        if direction == 1:
             return (pos[0], pos[1]-1)
 
         # move left
-        if direction == 3:
+        if direction == 2:
             return (pos[0]-1, pos[1])
         # move right
-        if direction == 4:
+        if direction == 3:
             return (pos[0]+1, pos[1])
         # stay
-        if direction == 5:
+        if direction == 4:
             return pos
         
         else:

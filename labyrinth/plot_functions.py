@@ -2,6 +2,20 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import pandas as pd
+from path import Path
+from board import Board
+
+
+def plot_path(ind: Path, board: Board):
+    pos = board.start
+    for direction in ind.directions:
+        pos = ind.get_new_pos(direction, pos)
+        board.matrix[pos[0]][pos[1]] = 4
+    
+    sns.heatmap(board.matrix, annot=True, cmap='viridis')
+    plt.savefig('Best_result.png')
+    plt.clf()
+        
 
 def plot_convergence(generation, best_values, mean_values, n_dim = 0, trial=0, save=False):
     sns.set_style("whitegrid")  # Define um estilo para o gráfico
@@ -23,7 +37,7 @@ def plot_convergence(generation, best_values, mean_values, n_dim = 0, trial=0, s
     figure_path = os.path.join(folder_path, f'convergence_trial_{trial}.png')
     plt.savefig(figure_path)
 
-    # plt.clf()
+    plt.clf()
 
 
 def save_trial_results(list_to_save, label, file_name):
