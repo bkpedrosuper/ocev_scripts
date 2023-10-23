@@ -1,0 +1,1 @@
+Menor número de iterações: 62

@@ -5,9 +5,36 @@ import pandas as pd
 from path import Path
 from board import Board
 import copy
+import math
+
+def plot_heatmap_grid(individuals, board, cols = 3):
+    num_individuals = len(individuals)
+
+    rows = math.ceil(num_individuals/cols)
+    
+    # Configuração da figura e subplots
+    fig, axes = plt.subplots(rows, cols, figsize=(36, 12*rows))
+    fig.suptitle("Grid of Paths", fontsize=16)
+
+    # Loop através dos indivíduos e seus respectivos subplots
+    for i in range(num_individuals):
+        row = i // cols
+        col = i % cols
+        ax = axes[row, col]
+
+        ind = individuals[i]
+        get_plot_path(ind, board, ax)
+        ax.set_title(f'Individual {i + 1}')
+
+    # Remova subplots vazios, se houverem
+    for i in range(num_individuals, rows * cols):
+        fig.delaxes(axes[i // cols, i % cols])
+
+    plt.savefig('Paths Found.png')
+    plt.clf()
 
 
-def plot_path(ind: Path, board: Board):
+def get_plot_path(ind: Path, board: Board, ax: any, best=False):
     board_decode = copy.deepcopy(board)
     pos = board_decode.start
     directions = ind.decode(board_decode)
@@ -17,13 +44,16 @@ def plot_path(ind: Path, board: Board):
             board_decode.matrix[pos[0]][pos[1]] = 5
         else:
             board_decode.matrix[pos[0]][pos[1]] = 4
-    
-    sns.heatmap(board_decode.matrix, annot=True, cmap='viridis')
-    plt.savefig('Best_result.png')
-    plt.clf()
+    if best:
+        sns.heatmap(board_decode.matrix, annot=True, cmap='viridis', cbar=False, xticklabels=False, yticklabels=False)
+        plt.savefig('Best_result.png')
+        plt.clf()
+        return None
+
+    return sns.heatmap(board_decode.matrix, annot=False, cmap='viridis', ax=ax, cbar=False, xticklabels=False, yticklabels=False)
         
 
-def plot_convergence(generation, best_values, mean_values, n_dim = 0, trial=0, save=False):
+def plot_convergence(generation, best_values, mean_values, n_dim = 0, trial=0, save=False, label='board1'):
     sns.set_style("whitegrid")  # Define um estilo para o gráfico
     generations = [i+1 for i in range(generation)]
 
@@ -36,7 +66,7 @@ def plot_convergence(generation, best_values, mean_values, n_dim = 0, trial=0, s
     plt.title(f"Convergence for Trial {trial}")
     plt.legend()
 
-    folder_path = f'results'
+    folder_path = f'results_{label}_maze'
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
     
@@ -51,14 +81,14 @@ def save_trial_results(list_to_save, label, file_name):
     best_values_str = ', '.join(map(str, list_to_save))
     label = str(label)
 
-    folder_path = f'results_{label}_queens'
+    folder_path = f'results_{label}'
 
     # Create or use the specified folder path
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
     # Define the file path for the text file (you can change the filename)
-    file_path = os.path.join(folder_path, f'{file_name}_{label}_results.txt')
+    file_path = os.path.join(folder_path, f'{file_name}_results.txt')
 
     # Write the best values to the text file
     with open(file_path, 'w') as file:
@@ -71,7 +101,7 @@ def save_any_result(text: str, label, file_name):
     # Create a comma-separated string of best values
     label = str(label)
 
-    folder_path = f'results_{label}_queens'
+    folder_path = f'results_{label}'
 
     # Create or use the specified folder path
     if not os.path.exists(folder_path):
@@ -91,7 +121,7 @@ def save_any_result(text: str, label, file_name):
 def plot_boxplot_trials_single_label(best_values_each_gen, label):
     print(best_values_each_gen)
     label = str(label)
-    folder_path = f'results_{label}_queens'
+    folder_path = f'results_{label}'
 
     # Create or use the specified folder path
     if not os.path.exists(folder_path):
@@ -112,8 +142,8 @@ def plot_boxplot_trials_single_label(best_values_each_gen, label):
 def read_results(labels: list[str], type: str) -> dict:
     results = {}
     for label in labels:
-        folder_name = f"results_{label}_queens"
-        file_name = f"{type}_{label}_results.txt"
+        folder_name = f"results_{label}"
+        file_name = f"{type}_results.txt"
         file_path = os.path.join(folder_name, file_name)
 
         print(file_path)
@@ -136,31 +166,29 @@ def plot_box_plots_all_labels(values_dict: dict, type: str):
 
     for key, value_list in values_dict.items():
         # Extend labels and values with the same key multiple times to match lengths
-        total_runs = len(value_list)
         labels.extend([key] * len(value_list))
         values.extend(value_list)
     
-    print(labels)
     df = pd.DataFrame(
         {
             type: values,
-            "n_queens": labels,
+            "boards": labels,
         }
     )
     
     sns.set(style="whitegrid")
     plt.figure(figsize=(8, 6))
-    sns.boxplot(data=df, x=type, y="n_queens")
+    sns.boxplot(data=df, x=type, y="boards")
     plt.title(f"Boxplot {type.capitalize()} - {total_runs} Trials")
     
-    folder_path = f'results_n_queens'
+    folder_path = f'results_maze'
     figure_path = os.path.join(folder_path, f'boxplot_all_trials_{type}.png')
     plt.savefig(figure_path)
 
 
-def plot_full_convergence(label: str):
-    df_fitness = pd.read_csv(f'results_{label}_queens/df_fitness.csv', index_col=0)
-    df_mean = pd.read_csv(f'results_{label}_queens/df_mean.csv', index_col=0)
+def plot_full_convergence(label: str = 'board1'):
+    df_fitness = pd.read_csv(f'results_{label}/df_fitness.csv', index_col=0)
+    df_mean = pd.read_csv(f'results_{label}/df_mean.csv', index_col=0)
 
     # Calculate the mean and standard deviation for each generation
     mean_fitness = df_fitness.mean(axis=1)
@@ -182,23 +210,23 @@ def plot_full_convergence(label: str):
 
     plt.xlabel("Generation Number")
     plt.ylabel("Fitness Value")
-    plt.title(f"Convergence Plot of Genetic Algorithm with Standard Deviation for {label} queens")
+    plt.title(f"Convergence Plot of Genetic Algorithm with Standard Deviation for Maze")
     plt.legend(loc="upper right")
     
     
-    folder_path = f'results_{label}_queens'
-    figure_path = os.path.join(folder_path, f'valored_full_convergence_{label}_queens.png')
+    folder_path = f'results_{label}_maze'
+    figure_path = os.path.join(folder_path, f'full_convergence_maze.png')
     plt.savefig(figure_path)
 
 
 if __name__ == "__main__":
-    labels = ['8', '16', '32', '64', '128']
+    labels = ['board1']
     trials_values_fitness = read_results(labels=labels, type="fitness")
-    # trials_values_mean = read_results(labels=labels, type="mean")
+    trials_values_mean = read_results(labels=labels, type="mean")
     trials_values_time = read_results(labels=labels, type="time")
 
     plot_box_plots_all_labels(values_dict=trials_values_fitness, type="fitness")
     plot_box_plots_all_labels(values_dict=trials_values_time, type="time")
     
-    for lab in labels:
-        plot_full_convergence(lab)
+    for label in labels:
+        plot_full_convergence(label=label)

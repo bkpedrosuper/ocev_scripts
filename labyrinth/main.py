@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import time
 from path import Path
-from plot_functions import plot_convergence, save_trial_results, save_any_result, plot_path
+from plot_functions import plot_convergence, save_trial_results, save_any_result, get_plot_path, plot_heatmap_grid
 
 # Board info
 from board import Board
@@ -29,7 +29,8 @@ if __name__ == "__main__":
     mean_values_each_trial = manager.list()
     time_spent_each_trial = manager.list()
 
-    board = Board(matrix=board1)
+    board = Board(matrix=board1['board'])
+    board_label = board1['name']
 
     # INIT TRIAL
     for trial_number in range(params["N_TESTS"]):
@@ -71,8 +72,8 @@ if __name__ == "__main__":
         df_mean = insert_values(df_mean, mean_values, trial_number)
 
         # SAVE TRIAL RESULTS
-        df_fitness.to_csv(f'results/fitness_trial_{trial_number}.csv')
-        df_mean.to_csv(f'results/mean_trial_{trial_number}.csv')
+        df_fitness.to_csv(f'results_{board_label}/fitness_trial_{trial_number}.csv')
+        df_mean.to_csv(f'results_{board_label}/mean_trial_{trial_number}.csv')
     
         # GET RESULTS FOR EVERY TRIAL
     
@@ -82,8 +83,8 @@ if __name__ == "__main__":
     dfss_mean = []
 
     for trial_number in range(0, params["N_TESTS"]):
-        df_fitness_trial = pd.read_csv(f'results/fitness_trial_{trial_number}.csv', index_col=0)
-        df_mean_trial = pd.read_csv(f'results/mean_trial_{trial_number}.csv', index_col=0)
+        df_fitness_trial = pd.read_csv(f'results_{board_label}/fitness_trial_{trial_number}.csv', index_col=0)
+        df_mean_trial = pd.read_csv(f'results_{board_label}/mean_trial_{trial_number}.csv', index_col=0)
         dfss_fitness.append(df_fitness_trial)
         dfss_mean.append(df_mean_trial)
 
@@ -97,17 +98,18 @@ if __name__ == "__main__":
     df_fitness_final = pd.concat(all_dfs_fitness, axis=1)
     df_means_final = pd.concat(all_dfs_means, axis=1)
 
-    df_fitness_final.to_csv(f"results/df_fitness.csv")
-    df_means_final.to_csv(f"results/df_mean.csv")
+    df_fitness_final.to_csv(f"results_{board_label}/df_fitness.csv")
+    df_means_final.to_csv(f"results_{board_label}/df_mean.csv")
 
     # GET BEST INDIVIDUAL OVER ALL TRIALS
     best_individual_all: Path = max(best_individual_each_trial, key=lambda x: x.fitness)
 
-    plot_path(best_individual_all, board)
+    get_plot_path(best_individual_all, board, ax=None, best=True)
+    plot_heatmap_grid(individuals=best_individual_each_trial, board=board)
 
-    save_trial_results(list_to_save=best_values_each_trial, label="radios", file_name='fitness')
-    save_trial_results(list_to_save=mean_values_each_trial, label="radios", file_name='mean')
-    save_trial_results(list_to_save=time_spent_each_trial, label="radios", file_name='time')
+    save_trial_results(list_to_save=best_values_each_trial, label=board_label, file_name='fitness')
+    save_trial_results(list_to_save=mean_values_each_trial, label=board_label, file_name='mean')
+    save_trial_results(list_to_save=time_spent_each_trial, label=board_label, file_name='time')
 
 
     end = time.time()
