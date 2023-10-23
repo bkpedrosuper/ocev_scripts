@@ -1,2 +1,4 @@
+Trials: 50
 Menor número de iterações: 62
-Total time spent: 304.38365936279297s
+Tempo total: 304.38365936279297s
+Corretos: 12/50
