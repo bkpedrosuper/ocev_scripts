@@ -1,8 +1,8 @@
 import random
 from path import Path
-from math import sqrt, pow, floor
 import numpy as np
 from board import Board
+from utils import euclidean_distance, manhattan_distance
 
 def calc_penalty(ind: Path, board: Board):
     total = len(ind.probs)
@@ -31,7 +31,7 @@ def calc_penalty(ind: Path, board: Board):
 def calc_fitness(ind: Path, board: Board) -> float:
     
     pos = board.start
-    max_distance = euclidean_distance((0, 0) , (board.width-1, board.height-1))
+    max_distance = manhattan_distance((0, 0) , (board.width-1, board.height-1))
     directions = ind.decode(board)
 
     for direction in directions:
@@ -41,19 +41,10 @@ def calc_fitness(ind: Path, board: Board) -> float:
             break
 
     last_pos = pos
-    final_distance = euclidean_distance(last_pos, board.exit)
+    final_distance = manhattan_distance(last_pos, board.exit)
     final_distance_nr = final_distance * 1 / (max_distance)
     fitness = (1 - final_distance_nr)
     return fitness
-
-def euclidean_distance(pos1, pos2):
-    x1 = pos1[0]
-    y1 = pos1[1]
-    x2 = pos2[0]
-    y2 = pos2[1]
-
-    distance = sqrt(pow(x2-x1, 2) + pow(y2-y1, 2))
-    return distance
 
 def routine_tournament_selection(population: list[Path], fitness_function, tournament_size = 4) -> list[Path]:
     selected_parents = []
