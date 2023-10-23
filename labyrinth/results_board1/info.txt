@@ -1,1 +1,2 @@
 Menor número de iterações: 62
+Total time spent: 304.38365936279297s
