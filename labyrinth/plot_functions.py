@@ -4,15 +4,21 @@ import os
 import pandas as pd
 from path import Path
 from board import Board
+import copy
 
 
 def plot_path(ind: Path, board: Board):
-    pos = board.start
-    for direction in ind.directions:
+    board_decode = copy.deepcopy(board)
+    pos = board_decode.start
+    directions = ind.decode(board_decode)
+    for direction in directions:
         pos = ind.get_new_pos(direction, pos)
-        board.matrix[pos[0]][pos[1]] = 4
+        if board.get_value(pos) == 3:
+            board_decode.matrix[pos[0]][pos[1]] = 5
+        else:
+            board_decode.matrix[pos[0]][pos[1]] = 4
     
-    sns.heatmap(board.matrix, annot=True, cmap='viridis')
+    sns.heatmap(board_decode.matrix, annot=True, cmap='viridis')
     plt.savefig('Best_result.png')
     plt.clf()
         
@@ -30,7 +36,7 @@ def plot_convergence(generation, best_values, mean_values, n_dim = 0, trial=0, s
     plt.title(f"Convergence for Trial {trial}")
     plt.legend()
 
-    folder_path = f'results_{n_dim}_queens'
+    folder_path = f'results'
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
     

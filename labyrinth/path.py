@@ -1,8 +1,11 @@
+from board import Board
+from math import floor
+import copy
 
 class Path:
 
-    def __init__(self, directions: list[int], fitness: float):
-        self.directions = directions
+    def __init__(self, probs: list[float], fitness: float):
+        self.probs = probs
         self.fitness = fitness
     
     def __str__(self) -> str:
@@ -12,28 +15,91 @@ class Path:
         return string
     
     def get_new_pos(self, direction, pos):
+        up = 0
+        down = 1
+        left = 2
+        right = 3
+        stay = 4
         
         # move up
-        if direction == 0:
-            return (pos[0], pos[1]+1)
-
-        # move down
-        if direction == 1:
+        if direction == up:
             return (pos[0], pos[1]-1)
 
+        # move down
+        if direction == down:
+            return (pos[0], pos[1]+1)
+
         # move left
-        if direction == 2:
+        if direction == left:
             return (pos[0]-1, pos[1])
         # move right
-        if direction == 3:
+        if direction == right:
             return (pos[0]+1, pos[1])
         # stay
-        if direction == 4:
+        if direction == stay:
             return pos
         
         else:
             print(f'Invalid position: {pos}')
             return pos
+
+    def decode(self, board: Board) -> list[int]:
+        board_decode = copy.deepcopy(board)
+        start = board.start
+
+        start_x = board_decode.start[0]
+        start_y = board_decode.start[1]
+        board_decode.matrix[start_x][start_y] = 0
+        
+        pos = start
+
+        up = 0
+        down = 1
+        left = 2
+        right = 3
+        stay = 4
+        directions = []
+        
+
+        for prob in self.probs:
+            x = pos[0]
+            y = pos[1]
+            possible_directions = []
+
+            # Mark the current position as a wall
+            board_decode.matrix[x][y] = 0
+
+            # Look up
+            if not board_decode.get_value(pos=(x, y-1)) == 0:
+                possible_directions.append(up)
+            
+            # Look down
+            if not board_decode.get_value(pos=(x, y+1)) == 0:
+                possible_directions.append(down)
+            
+            # Look left
+            if not board_decode.get_value(pos=(x-1, y)) == 0:
+                possible_directions.append(left)
+            
+            # Look right
+            if not board_decode.get_value(pos=(x+1, y)) == 0:
+                possible_directions.append(right)
+            
+            tp = len(possible_directions)
+            if tp == 0:
+                new_direction = stay
+            else:
+                new_direction = possible_directions[floor(prob * tp)]
+
+            # print(f'possible_directions: {possible_directions}')
+            # print(f'tp: {tp}')
+            # print(f'prob: {prob}')
+            # print(f'floor(prob * tp): {floor(prob * tp)}')
+            
+            directions.append(new_direction)
+            pos = self.get_new_pos(new_direction, pos)
+        
+        return directions
 
     # def get_info(self) -> str:
 

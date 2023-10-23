@@ -21,9 +21,8 @@ def create_initial_population(base: str) -> list[Path]:
     population = []
     directions = [0, 1, 2, 3, 4]
     for _ in range(pop):
-        cromossomes = [random.choice(directions)]
-        cromossomes.extend([directions[4] for _ in range(dim-1)])
-        individual = Path(directions=cromossomes, fitness=0)
+        cromossomes = [random.random() for _ in range(dim)]
+        individual = Path(fitness=0, probs=cromossomes)
         population.append(individual)
 
     return population

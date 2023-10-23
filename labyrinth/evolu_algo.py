@@ -1,17 +1,17 @@
 import random
 from path import Path
-from math import sqrt, pow
+from math import sqrt, pow, floor
 import numpy as np
 from board import Board
 
 def calc_penalty(ind: Path, board: Board):
-    total = len(ind.directions)
+    total = len(ind.probs)
 
     pos = board.start
     penalty_count = 0
     found_exit = False
 
-    for direction in ind.directions:
+    for direction in ind.probs:
         pos = ind.get_new_pos(direction, pos)
         
         x = pos[0]
@@ -32,18 +32,19 @@ def calc_fitness(ind: Path, board: Board) -> float:
     
     pos = board.start
     max_distance = euclidean_distance((0, 0) , (board.width-1, board.height-1))
+    directions = ind.decode(board)
 
-    for direction in ind.directions:
+    for direction in directions:
         pos = ind.get_new_pos(direction, pos)
-        # if board.get_value(pos) == 3:
-        #     # Found the exit
-        #     break
+        if board.get_value(pos) == 3:
+            # Found the exit
+            break
 
     last_pos = pos
     final_distance = euclidean_distance(last_pos, board.exit)
     final_distance_nr = final_distance * 1 / (max_distance)
     fitness = (1 - final_distance_nr)
-    return fitness - calc_penalty(ind, board)
+    return fitness
 
 def euclidean_distance(pos1, pos2):
     x1 = pos1[0]
@@ -69,7 +70,7 @@ def routine_tournament_selection(population: list[Path], fitness_function, tourn
         tournament = random.sample(population, tournament_size)
         
         # Calculate fitness scores for the tournament participants
-        fitness_scores = [fitness_function(individual) for individual in tournament]
+        fitness_scores = [individual.fitness for individual in tournament]
         
         # Find the index of the individual with the highest fitness score
         best_index = fitness_scores.index(max(fitness_scores))
@@ -102,8 +103,8 @@ def roulette_selection(population, fitness_function, num_parents) -> list[Path]:
 
 
 def one_point_crossover(parent1: Path, parent2: Path) -> (Path, Path):
-    cr1 = parent1.bin
-    cr2 = parent1.bin
+    cr1 = parent1.probs
+    cr2 = parent1.probs
     
     position = random.randint(0, len(cr1) - 1)
 
@@ -140,16 +141,15 @@ def routine_crossover(parents: list[Path], cross_chance: int) -> list[Path]:
 
 
 def mutate_individual(individual: Path, mut_chance: float) -> Path:
-    new_directions = []
-    directions = [0, 1, 2, 3, 4]
+    new_probs = []
 
-    for direction in individual.directions:
+    for direction in individual.probs:
         if random.random() < mut_chance:
-            new_directions.append(random.choice(directions))
+            new_probs.append(random.random())
         else:
-            new_directions.append(direction)
+            new_probs.append(direction)
 
-    individual = Path(new_directions, 0)
+    individual = Path(new_probs, 0)
     return individual
 
 
@@ -176,8 +176,8 @@ def generation_manager(population: list[Path], params: dict, gen_number: int, bo
     individuals_sorted_by_fitness: list[Path] = sorted(population, key=lambda ind: ind.fitness)
     n_best_individuals: list[Path] = individuals_sorted_by_fitness[-params["ELIT"]:]
 
-    # selected_parents = routine_tournament_selection(population=population, fitness_function=calc_fitness, tournament_size=3)
-    # new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
+    selected_parents = routine_tournament_selection(population=population, fitness_function=calc_fitness, tournament_size=3)
+    new_population = routine_crossover(selected_parents, cross_chance=params["CROSS"])
     
     new_population = routine_mutation(population, params["MUT"])
 
@@ -185,9 +185,9 @@ def generation_manager(population: list[Path], params: dict, gen_number: int, bo
 
     final_population = []
     for ind in new_population:
-        directions = ind.directions
+        probs = ind.probs
         fitness = calc_fitness(ind, board)
-        new_individual = Path(directions, fitness)
+        new_individual = Path(probs, fitness)
         final_population.append(new_individual)
 
     return final_population
