@@ -45,7 +45,7 @@ def get_plot_path(ind: Path, board: Board, ax: any, best=False):
         else:
             board_decode.matrix[pos[0]][pos[1]] = 4
     if best:
-        sns.heatmap(board_decode.matrix, annot=True, cmap='viridis', cbar=False, xticklabels=False, yticklabels=False)
+        sns.heatmap(board_decode.matrix, annot=False, cmap='viridis', cbar=False, xticklabels=False, yticklabels=False)
         plt.savefig('Best_result.png')
         plt.clf()
         return None
