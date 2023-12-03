@@ -29,6 +29,8 @@ def calc_penalty(ind: Path, board: Board):
     return penalty
 
 def calc_fitness(ind: Path, board: Board) -> float:
+    ind_size = len(ind.probs)
+    solution_length = 0
     
     pos = board.start
     max_distance = manhattan_distance((0, 0) , (board.width-1, board.height-1))
@@ -39,11 +41,12 @@ def calc_fitness(ind: Path, board: Board) -> float:
         if board.get_value(pos) == 3:
             # Found the exit
             break
+        solution_length += 1
 
     last_pos = pos
     final_distance = manhattan_distance(last_pos, board.exit)
     final_distance_nr = final_distance * 1 / (max_distance)
-    fitness = (1 - final_distance_nr)
+    fitness = (1 - final_distance_nr) + (ind_size - solution_length) / ind_size
     return fitness
 
 def routine_tournament_selection(population: list[Path], fitness_function, tournament_size = 4) -> list[Path]:

@@ -104,7 +104,7 @@ if __name__ == "__main__":
     # GET BEST INDIVIDUAL OVER ALL TRIALS
     best_individual_all: Path = max(best_individual_each_trial, key=lambda x: x.fitness)
 
-    get_plot_path(best_individual_all, board, ax=None, best=True)
+    get_plot_path(best_individual_all, board, ax=None, best=True, label=board_label)
     plot_heatmap_grid(individuals=best_individual_each_trial, board=board)
 
     save_trial_results(list_to_save=best_values_each_trial, label=board_label, file_name='fitness')
