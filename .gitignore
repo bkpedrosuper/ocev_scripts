@@ -178,3 +178,4 @@ pyrightconfig.json
 *.csv
 *.png
 *.Zone.Identifier
+*.xlsx
