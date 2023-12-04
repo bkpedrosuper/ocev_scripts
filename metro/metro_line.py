@@ -14,3 +14,4 @@ class Metro:
         
         self.start = start
         self.end = end
+        self.speed = 40

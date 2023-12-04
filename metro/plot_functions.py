@@ -66,7 +66,7 @@ def plot_convergence(generation, best_values, mean_values, n_dim = 0, trial=0, s
     plt.title(f"Convergence for Trial {trial}")
     plt.legend()
 
-    folder_path = f'results_{label}_maze'
+    folder_path = f'results_{label}'
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
     

@@ -20,7 +20,7 @@ def calc_fitness(ind: Path, metro: Metro) -> float:
 
     for direction in directions:
         total_distance += distances[pos][direction]
-        
+
         for color, stations in lines.items():
             if pos in stations and direction in stations:
                 if curr_line != color:
@@ -29,10 +29,18 @@ def calc_fitness(ind: Path, metro: Metro) -> float:
         
         if direction == metro.end:
             break
+
+        pos = direction
+
+    max_t = 500
     
-    penalty = calc_penalty(metro.max_distance, total_distance)
+    total_time = (total_distance / metro.speed) * 60 + acc
+
+    if direction != metro.end:
+        return 0
     
-    return penalty
+    fitness = 1 - (total_time / max_t)    
+    return fitness
 
 def routine_tournament_selection(population: list[Path], fitness_function, tournament_size = 4) -> list[Path]:
     selected_parents = []

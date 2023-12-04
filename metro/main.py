@@ -18,8 +18,12 @@ if __name__ == "__main__":
     
     df = pd.read_excel(f'inputs/metro.xlsx')
     df.set_index('Estacao', inplace=True)
-    df.to_csv(f'inputs/metro.csv', index_label='Estacao')
-    metro_label = params["LABEL"]
+    df = df.fillna(0)
+    df_t = df.T
+    df = df + df_t
+    df = df.replace(0, np.nan)
+
+    metro_label = f'{params["LABEL"]}_{params["START"]}_to_{params["END"]}'
     metro = Metro(df, start=params["START"], end=params["END"])
 
     init = time.time()
@@ -33,8 +37,6 @@ if __name__ == "__main__":
     best_individual_each_trial = manager.list()
     mean_values_each_trial = manager.list()
     time_spent_each_trial = manager.list()
-
-    print(params)
 
 
     # INIT TRIAL
@@ -60,7 +62,7 @@ if __name__ == "__main__":
 
             print(f'Best Individual: {best_individual.fitness}')
         
-        plot_convergence(generation=params["GEN"], best_values=best_values, mean_values=mean_values, n_dim=params["DIM"], save=True, trial=trial_number)
+        plot_convergence(generation=params["GEN"], best_values=best_values, mean_values=mean_values, n_dim=params["DIM"], save=True, trial=trial_number, label=metro_label)
         
         end_time_trial = time.time()
 
@@ -109,8 +111,10 @@ if __name__ == "__main__":
     # GET BEST INDIVIDUAL OVER ALL TRIALS
     best_individual_all: Path = max(best_individual_each_trial, key=lambda x: x.fitness)
 
-    get_plot_path(best_individual_all, metro, ax=None, best=True, label=metro_label)
-    plot_heatmap_grid(individuals=best_individual_each_trial, metro=metro)
+    print(best_individual_all.__str__(metro))
+
+    # get_plot_path(best_individual_all, metro, ax=None, best=True, label=metro_label)
+    # plot_heatmap_grid(individuals=best_individual_each_trial, metro=metro)
 
     save_trial_results(list_to_save=best_values_each_trial, label=metro_label, file_name='fitness')
     save_trial_results(list_to_save=mean_values_each_trial, label=metro_label, file_name='mean')
